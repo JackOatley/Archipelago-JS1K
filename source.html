@@ -1,0 +1,137 @@
+<canvas><script>
+
+// Var reference:
+// a = canvas
+// b = blur function
+// c = context
+// d = image data
+// e = generation function
+// f =
+// g = half-height of the map
+// h = height of the map
+// i =
+// j = general use
+// k =
+// l = map array
+// m =
+// n = iterator
+// o = iterator
+// p =
+// q =
+// r = render function
+// s = Math
+// t =
+// u =
+// v = half-width of the map
+// w = width of the map
+// x = coord
+// y = coord
+// z = coord
+
+//
+s = Math;
+
+// Set width and height.
+w=640;h=480;
+v=w/2;g=h/2;
+
+// Create canvas/context/imagedata.
+a=document.querySelector("canvas");
+c=a.getContext("2d");
+a.width=w;a.height=h;
+d=c.createImageData(w,h);
+
+// Create map.
+l=[];n=w*h;while(n--)l[n]=0;
+
+// Convert coords to id.
+id=(x,y)=>x+y*w;
+
+// Get a random offset (-1, 0, 1).
+ip=()=>~~(s.random()*3)-1;
+
+// Increment a point on the map.
+ap=(x,y)=>l[id(x,y)]++;
+
+// Generate map by repeating above function, repositioned each time.
+e=()=>{
+	x=v;y=g;
+	n=1e6;
+	while(n--){
+		u=x-v;
+		j=y-g;
+		if(u*u+j*j>g*g*.9){
+			j=s.random()*s.PI;
+			x=v+~~(s.cos(j)*g/2);
+			y=g+~~(s.sin(j)*g/2);
+		}
+		ap(x+=ip(),y+=ip());
+	}
+}
+
+// Simple blur function.
+b=(n)=>{
+	while(n--){
+		x=w-2;while(x-->1){
+			y=h-2;while(y-->1){
+				i=id(x,y);
+				l[i]=(l[i]+l[i-1]+l[i+1]+l[i-w]+l[i+w])/5;
+			}
+		}
+	}
+}
+
+// Render function.
+r=()=>{
+	mx=l.reduce((a,b)=>s.max(a,b));
+	mx=255/mx;
+	x=w;
+	while(x--){
+		y=0;
+		while(y<h){
+			i=id(x,y);
+			z=l[i]*mx;
+
+			sh=0.7+(l[i-w-1]*mx-z)/40;
+
+			o = s.sin(((y+x*y)*(x*y)));
+
+			// Mountain-top.
+			m=[255*sh, 255*sh, 255*sh,255];
+
+			// Mountain-side.
+			if(z<220) m = [200*sh+o*9, 220*sh+o*5, 200*sh+o*9,255];
+
+			// Grass.
+			if(z<150) m = [129*sh+o*3, 226*sh+o*9, 90*sh+o*3,255];
+
+			// Trees.
+			if(z<140&&z>90&&o>0.5) {
+				m = [76*sh+o*23, 135*sh+o*29, 52*sh+o*13,255];
+				z += 20;
+			}
+
+			// Beach.
+			if(z<60) m = [240*sh, 240*sh, 180*sh,255];
+
+			// Water.
+			if(z<50) m = [60,110+z+o*5,215,255];
+
+			z = ~~(y - z*z/1e3);
+			do {
+				if (z>=0)
+					d.data.set(m,id(x,z)*4)
+			} while (y>z++);
+			y++;
+		}
+	}
+}
+
+e();
+b(50);
+r();
+
+// And, finally, draw.
+c.putImageData(d,0,0);
+
+</script>
