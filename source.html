@@ -6,9 +6,9 @@
 // c = context
 // d = image data
 // e = generation function
-// f = 255;
+// I = convert coords function.
 // g = Get offset function
-// h =
+// h = ImageData.data
 // i = iterator
 // j = general use
 // k =
@@ -31,28 +31,28 @@
 // Constants.
 s=Math;
 t=s.random;
-f=255;
-w=500;		// Size of map.
+w=510;		// Size of map.
 v=w/2;		// Size of math / 2.
 
 // Create canvas/context/imagedata.
 c=a.getContext("2d");
 d=c.createImageData(a.width=w,a.height=v);		// Titled view.
+h=d.data;
 
 // Create map.
 l=Array(w*w).fill(0);
 
-// Convert coords to id.
-id=(x,y)=>x+y*w;
+// Convert coords to I.
+I=(x,y)=>x+y*w;
 
 // Get a random offset (-1, 0, 1).
 g=()=>~~(t()*3)-1;
 
 // Increment a point on the map.
-ap=(x,y)=>l[id(x,y)]++;
+ap=(x,y)=>l[I(x,y)]++;
 
 // Generate map by repeating above function, repositioned each time.
-e=(n)=>{
+e=n=>{
 	x=y=v;
 	while(n--){
 		u=x-v;
@@ -69,7 +69,7 @@ e=(n)=>{
 // Simple blur function.
 // Not accurate, in the sense that there's no horizontal bounds checking.
 // It just doesn't cause any problems in this use case.
-b=(n)=>{
+b=n=>{
 	while(n--){
 		i=w*w-w;
 		while(i-->w){
@@ -80,13 +80,13 @@ b=(n)=>{
 
 // Render function.
 r=()=>{
-	mx=l.reduce((a,b)=>s.max(a,b));
-	mx=255/mx;
+	h.fill(v);
+	mx=255/l.reduce((a,b)=>s.max(a,b));
 	x=w;
 	while(x--){
 		y=0;
 		while(y<w){
-			i=id(x,y);
+			i=I(x,y);
 			z=l[i]*mx;
 
 			// Shadows.
@@ -97,27 +97,27 @@ r=()=>{
 
 			// Water.
 			m = (z<50)
-				?[100+z*o,150+o*5+z,235-z,f]
+				?[100+z*o,150+o*5+z,235-z]
 
 			// Beach.
 			:(z<60)
-				?m = [240, 240, 180,f]
+				?m = [240, 240, 180]
 
 			// Trees.
 			:(z<150&&z>90&&o>.5)
-				?(z+=20*o,[76+o*23, 135+o*29, 52+o*13,f])
+				?(z+=20*o,[76+o*23, 135+o*29, 52+o*13])
 
 
 			// Grass.
 			:(z<150)
-				?[129+o*3, 226+o*9, 90+o*3,f]
+				?[129+o*3, 226+o*9, 90+o*3]
 
 			// Mountain-side.
 			:(z<220)
-				?[200+o*9, 220+o*5, 200+o*9,f]
+				?[200+o*9, 220+o*5, 200+o*9]
 
 			// Mountain-top.
-			:[f,f,f,f];
+			:[v,v,v];
 
 			m[0]*=sh;
 			m[1]*=sh;
@@ -127,7 +127,7 @@ r=()=>{
 			z = ~~(y - z*z/1e3);
 			do {
 				if(z>=0)
-					d.data.set(m,id(x,~~(z/2))*4)
+					h.set(m,I(x,~~(z/2))*4)
 			} while (y>z++);
 
 			//
@@ -139,10 +139,17 @@ r=()=>{
 e(1e6);
 b(50);
 r();
-h=l;
-k=d;
-d=c.createImageData(a.width=w,a.height=v);		// Titled view.
+
+d=c.createImageData(a.width=w,a.height=v);
+k=d.data;
+p=l;
 l=Array(w*w).fill(0);
+
+// Modify the color of a pixel at "X"/"Y" by "_"
+Y=(X,Y,_)=>{
+	for(n=3;n--;)
+		k[I(X,Y)*4+n]+=_
+};
 
 // Clouds.
 e(1e5);
@@ -150,28 +157,32 @@ b(50);
 xp=0;
 setInterval(()=>{
 	xp-=1;
-	d.data.set(k.data,0)
-	mx=l.reduce((a,b)=>s.max(a,b));
-	mx=255/mx;
+	k.set(h,0);
+	nx=255/l.reduce((a,b)=>s.max(a,b));
 	x=w;
 	while(x--){
-		y=0;
-		while(y<w){
-			i=id(x,y);
-			z=l[i]*mx/3;
+		y=w;
+		while(y--){
 
-			i=id(x-xp,~~(y/2))*4;
-			d.data[i]-=z/3;
-			d.data[i+1]-=z/3;
-			d.data[i+2]-=z/3;
+			// Water animation
+			z=p[I(x,y)]*mx;
+			i=I(x,~~(y/2-2))*4;
+			if (z<30){
+				k[i+1]+=s.sin(y/5-xp/8)+s.cos((x+y)/5-xp/8);;
+			}
 
-			i=id(x+150-xp,~~(y/2)-100)*4;
-			d.data[i]+=z;
-			d.data[i+1]+=z;
-			d.data[i+2]+=z;
+			// Shore wave animation
+			sin=s.sin(y/9-xp/4);
+			if (z<53+sin&&z>=30+sin){
+				Y(x,~~(y/2-2),z-25)
+			}
 
-			//
-			y++;
+			i=I(x,y);
+			z=l[i]*nx/3;
+
+			// Cloud.
+			Y(x-xp,~~(y/2),-z/3)	// Shadow.
+			Y(x+99-xp,~~(y/2)-50,z) // Body.
 		}
 	}
 	c.putImageData(d,0,0);
