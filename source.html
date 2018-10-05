@@ -1,99 +1,71 @@
 <canvas id=a><script>
 
-// Var reference:
-// a = canvas
-// b = blur function
-// c = context
-// d = image data
-// e = generation function
-// I = convert coords function.
-// g = Get offset function
-// h = ImageData.data
-// i = iterator
-// j = general use
-// k =
-// l = map array
-// m =
-// n = iterator
-// o = iterator
-// p =
-// q =
-// r = render function
-// s = Math
-// t = Math.random
-// u =
-// v = half-width of the map
-// w = width of the map
-// x = coord
-// y = coord
-// z = coord
-
 // Constants.
-s=Math;
-t=s.random;
-w=510;		// Size of map.
-v=w/2;		// Size of math / 2.
+s = Math;
+t = s.random;
+U = s.sin;
+L = s.cos;
+c = a.getContext("2d");
 
-// Create canvas/context/imagedata.
-c=a.getContext("2d");
-d=c.createImageData(a.width=w,a.height=v);		// Titled view.
-h=d.data;
+//
+D = _ => {
+	d = c.createImageData(a.width=w=510, a.height=v=w/2);
+	l = Array(w*w).fill(Q=0);
+	h = d.data;
 
-// Create map.
-l=Array(w*w).fill(0);
-
-// Convert coords to I.
-I=(x,y)=>x+y*w;
-
-// Get a random offset (-1, 0, 1).
-g=()=>~~(t()*3)-1;
-
-// Increment a point on the map.
-ap=(x,y)=>l[I(x,y)]++;
-
-// Generate map by repeating above function, repositioned each time.
-e=n=>{
+	// Generate map.
 	x=y=v;
-	while(n--){
+	while(_--){
 		u=x-v;
 		j=y-v;
+
+		// Check distance.
 		if(u*u+j*j>v*v*.9){
 			j=t()*s.PI;
-			x=v+~~(s.cos(j)*v/2);
-			y=v+~~(s.sin(j)*v/2);
+			x=v+~~(L(j)*v/2);
+			y=v+~~(U(j)*v/2);
 		}
-		ap(x+=g(),y+=g());
-	}
-}
 
-// Simple blur function.
-// Not accurate, in the sense that there's no horizontal bounds checking.
-// It just doesn't cause any problems in this use case.
-b=n=>{
-	while(n--){
+		// Increament point.
+		l[I(x+=g(),y+=g())]++;
+
+	}
+
+	// Simple blur function.
+	// Not accurate, in the sense that there's no horizontal bounds checking.
+	// It just doesn't cause any problems in this use case.
+	for(_=50;_--;){
 		i=w*w-w;
 		while(i-->w){
 			l[i]=(l[i]+l[i-1]+l[i+1]+l[i-w]+l[i+w])/5;
 		}
 	}
-}
+
+	// Max height of map.
+	H = 255 / l.reduce((a, b) => s.max(a, b));
+
+};
+
+// Convert coords to I.
+I=(x,y)=>x+y*w;
+
+// Get a random offset (-1, 0, 1).
+g=_=>~~(t()*3)-1;
 
 // Render function.
-r=()=>{
+r=_=>{
 	h.fill(v);
-	mx=255/l.reduce((a,b)=>s.max(a,b));
-	x=w;
-	while(x--){
+	for(x=w;x--;){
 		y=0;
 		while(y<w){
 			i=I(x,y);
-			z=l[i]*mx;
+			z=l[i]*H;
 
 			// Shadows.
-			sh=.7+(l[i-w-1]*mx-z)/30;
+			S=.7+(l[i-w-1]*H-z)/30;
 
 			// Noise/
-			o = s.sin((y+x*y)*x*y);
+			o = U((y+x*y)*x*y);
 
 			// Water.
 			m = (z<50)
@@ -107,7 +79,6 @@ r=()=>{
 			:(z<150&&z>90&&o>.5)
 				?(z+=20*o,[76+o*23, 135+o*29, 52+o*13])
 
-
 			// Grass.
 			:(z<150)
 				?[129+o*3, 226+o*9, 90+o*3]
@@ -119,16 +90,16 @@ r=()=>{
 			// Mountain-top.
 			:[v,v,v];
 
-			m[0]*=sh;
-			m[1]*=sh;
-			m[2]*=sh;
+			m[0]*=S;
+			m[1]*=S;
+			m[2]*=S;
 
 			//
 			z = ~~(y - z*z/1e3);
 			do {
 				if(z>=0)
-					h.set(m,I(x,~~(z/2))*4)
-			} while (y>z++);
+					h.set(m,I(x,~~(z/2))*4);
+			} while (y>z++)
 
 			//
 			y++;
@@ -136,56 +107,46 @@ r=()=>{
 	}
 }
 
-e(1e6);
-b(50);
-r();
-
-d=c.createImageData(a.width=w,a.height=v);
-k=d.data;
-p=l;
-l=Array(w*w).fill(0);
+D(1e6)
+r()
 
 // Modify the color of a pixel at "X"/"Y" by "_"
 Y=(X,Y,_)=>{
 	for(n=3;n--;)
-		k[I(X,Y)*4+n]+=_
+		h[I(X,Y)*4+n]+=_;
 };
 
 // Clouds.
-e(1e5);
-b(50);
-xp=0;
-setInterval(()=>{
-	xp-=1;
-	k.set(h,0);
-	nx=255/l.reduce((a,b)=>s.max(a,b));
-	x=w;
-	while(x--){
-		y=w;
-		while(y--){
+k=d.data;
+p=l;
+M = H;
+D(1e5);
+setInterval(_=>{
+	Q--;
+	h.set(k,0);
+	for(x=w;x--;){
+		for(y=w;y--;){
 
 			// Water animation
-			z=p[I(x,y)]*mx;
+			z=p[I(x,y)]*M;
 			i=I(x,~~(y/2-2))*4;
 			if (z<30){
-				k[i+1]+=s.sin(y/5-xp/8)+s.cos((x+y)/5-xp/8);;
+				h[i+1]+=U(y/5-Q/8)+L((x+y)/5-Q/8);
 			}
 
 			// Shore wave animation
-			sin=s.sin(y/9-xp/4);
-			if (z<53+sin&&z>=30+sin){
-				Y(x,~~(y/2-2),z-25)
+			q=U(y/9-Q/4);
+			if (z<53+q&&z>=30+q){
+				Y(x,~~(y/2-2),z-25);
 			}
 
-			i=I(x,y);
-			z=l[i]*nx/3;
-
 			// Cloud.
-			Y(x-xp,~~(y/2),-z/3)	// Shadow.
-			Y(x+99-xp,~~(y/2)-50,z) // Body.
+			z=p[I(x,y)]*M/3;
+			Y(x-Q,~~(y/2),-z/3);	// Shadow.
+			Y(x+99-Q,~~(y/2)-50,z); // Body.
 		}
 	}
 	c.putImageData(d,0,0);
-},40);
+},40)
 
 </script>
