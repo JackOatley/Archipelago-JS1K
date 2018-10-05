@@ -5,12 +5,12 @@ s = Math;
 t = s.random;
 U = s.sin;
 L = s.cos;
-c = a.getContext("2d");
+c = a.getContext("2d")
 
 //
 D = _ => {
-	d = c.createImageData(a.width=w=510, a.height=v=w/2);
-	l = Array(w*w).fill(Q=0);
+	d = c.createImageData(a.width=w=510, a.height=v=w/2)
+	l = Array(w*w).fill(Q=0)
 	h = d.data;
 
 	// Generate map.
@@ -22,12 +22,12 @@ D = _ => {
 		// Check distance.
 		if(u*u+j*j>v*v*.9){
 			j=t()*s.PI;
-			x=v+~~(L(j)*v/2);
-			y=v+~~(U(j)*v/2);
+			x=v+~~(L(j)*v/2)
+			y=v+~~(U(j)*v/2)
 		}
 
 		// Increament point.
-		l[I(x+=g(),y+=g())]++;
+		l[I(x+=g(),y+=g())]++
 
 	}
 
@@ -37,12 +37,12 @@ D = _ => {
 	for(_=50;_--;){
 		i=w*w-w;
 		while(i-->w){
-			l[i]=(l[i]+l[i-1]+l[i+1]+l[i-w]+l[i+w])/5;
+			l[i]=(l[i]+l[i-1]+l[i+1]+l[i-w]+l[i+w])/5
 		}
 	}
 
 	// Max height of map.
-	H = 255 / l.reduce((a, b) => s.max(a, b));
+	H = v / l.reduce((a, b) => s.max(a, b))
 
 };
 
@@ -54,37 +54,35 @@ g=_=>~~(t()*3)-1;
 
 // Render function.
 r=_=>{
-	h.fill(v);
+	h.fill(v)
 	for(x=w;x--;){
-		y=0;
-		while(y<w){
-			i=I(x,y);
-			z=l[i]*H;
+		for(y=0;y<w;y++){
+			z=l[i=I(x,y)]*H;
 
 			// Shadows.
 			S=.7+(l[i-w-1]*H-z)/30;
 
-			// Noise/
-			o = U((y+x*y)*x*y);
+			// Noise
+			o = U((y+x*y)*x*y)
 
 			// Water.
-			m = (z<50)
-				?[100+z*o,150+o*5+z,235-z]
+			m = z<50
+				?[99+z*o,150+o*5+z,235-z]
 
 			// Beach.
-			:(z<60)
-				?m = [240, 240, 180]
+			:z<60
+				?m = [v, v, 180]
 
 			// Trees.
-			:(z<150&&z>90&&o>.5)
+			:z<150&&z>90&&o>.5
 				?(z+=20*o,[76+o*23, 135+o*29, 52+o*13])
 
 			// Grass.
-			:(z<150)
+			:z<150
 				?[129+o*3, 226+o*9, 90+o*3]
 
 			// Mountain-side.
-			:(z<220)
+			:z<220
 				?[200+o*9, 220+o*5, 200+o*9]
 
 			// Mountain-top.
@@ -95,14 +93,12 @@ r=_=>{
 			m[2]*=S;
 
 			//
-			z = ~~(y - z*z/1e3);
+			z = ~~(y - z*z/1e3)
 			do {
 				if(z>=0)
-					h.set(m,I(x,~~(z/2))*4);
+					h.set(m,I(x,~~(z/2))*4)
 			} while (y>z++)
 
-			//
-			y++;
 		}
 	}
 }
@@ -113,40 +109,40 @@ r()
 // Modify the color of a pixel at "X"/"Y" by "_"
 Y=(X,Y,_)=>{
 	for(n=3;n--;)
-		h[I(X,Y)*4+n]+=_;
+		h[I(X,Y)*4+n]+=_
 };
 
 // Clouds.
 k=d.data;
 p=l;
 M = H;
-D(1e5);
+D(1e5)
 setInterval(_=>{
 	Q--;
-	h.set(k,0);
+	h.set(k,0)
 	for(x=w;x--;){
 		for(y=w;y--;){
 
 			// Water animation
 			z=p[I(x,y)]*M;
 			i=I(x,~~(y/2-2))*4;
-			if (z<30){
-				h[i+1]+=U(y/5-Q/8)+L((x+y)/5-Q/8);
+			if (z < 30) {
+				h[i+1]+=U(y/5-Q/8)+L((x+y)/5-Q/8)
 			}
 
 			// Shore wave animation
-			q=U(y/9-Q/4);
-			if (z<53+q&&z>=30+q){
-				Y(x,~~(y/2-2),z-25);
+			q=U(y/9-Q/4)
+			if (z<53+q && z>=30+q) {
+				Y(x,~~(y/2-2),z-25)
 			}
 
 			// Cloud.
 			z=p[I(x,y)]*M/3;
-			Y(x-Q,~~(y/2),-z/3);	// Shadow.
-			Y(x+99-Q,~~(y/2)-50,z); // Body.
+			Y(x-Q,~~(y/2),-z/3)
+			Y(x+99-Q,~~(y/2)-50,z)
 		}
 	}
-	c.putImageData(d,0,0);
+	c.putImageData(d,0,0)
 },40)
 
 </script>
